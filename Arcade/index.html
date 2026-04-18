@@ -32,8 +32,115 @@
       font-size: 10px;
       color: #f0f;
       text-shadow: 0 0 8px #f0f;
-      margin-bottom: 60px;
+      margin-bottom: 30px;
       letter-spacing: 3px;
+    }
+
+    /* Toggle */
+    .toggle-wrap {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 50px;
+    }
+
+    .toggle-label {
+      font-size: 9px;
+      letter-spacing: 2px;
+      transition: color 0.3s, text-shadow 0.3s;
+    }
+
+    .toggle-label.human {
+      color: #0ff;
+      text-shadow: 0 0 8px #0ff;
+    }
+
+    .toggle-label.ai {
+      color: #f0f;
+      text-shadow: 0 0 8px #f0f;
+    }
+
+    .toggle-label.dim {
+      color: #445;
+      text-shadow: none;
+    }
+
+    .toggle-track {
+      width: 60px;
+      height: 28px;
+      background: #0d0d2b;
+      border: 2px solid #0ff;
+      border-radius: 14px;
+      position: relative;
+      cursor: pointer;
+      transition: border-color 0.3s, box-shadow 0.3s;
+      box-shadow: 0 0 8px #0ff4;
+      flex-shrink: 0;
+    }
+
+    .toggle-track.ai-mode {
+      border-color: #f0f;
+      box-shadow: 0 0 8px #f0f4;
+    }
+
+    .toggle-knob {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #0ff;
+      box-shadow: 0 0 8px #0ff;
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      transition: transform 0.3s, background 0.3s, box-shadow 0.3s;
+    }
+
+    .toggle-track.ai-mode .toggle-knob {
+      transform: translateX(32px);
+      background: #f0f;
+      box-shadow: 0 0 8px #f0f;
+    }
+
+    /* Game sections */
+    .games-section {
+      display: none;
+      width: 100%;
+      max-width: 1000px;
+    }
+    .games-section.active { display: block; }
+
+    /* Coming soon card */
+    .game-card.coming-soon {
+      opacity: 0.45;
+      cursor: default;
+      border-color: #446;
+      box-shadow: none;
+    }
+    .game-card.coming-soon:hover {
+      transform: none;
+      border-color: #446;
+      box-shadow: none;
+      background: #0d0d2b;
+    }
+    .game-card.coming-soon .play-btn {
+      border-color: #446;
+      color: #446;
+      text-shadow: none;
+      box-shadow: none;
+      cursor: default;
+    }
+    .game-card.coming-soon:hover .play-btn {
+      border-color: #446;
+      color: #446;
+      text-shadow: none;
+      box-shadow: none;
+      background: transparent;
+    }
+    .coming-tag {
+      font-size: 7px;
+      color: #f0f;
+      text-shadow: 0 0 6px #f0f;
+      letter-spacing: 2px;
     }
 
     @keyframes flicker {
@@ -129,6 +236,16 @@
   <div class="title">ARCADE</div>
   <div class="subtitle">INSERT COIN TO PLAY</div>
 
+  <div class="toggle-wrap">
+    <span class="toggle-label human" id="label-human">HUMAN</span>
+    <div class="toggle-track" id="toggle" onclick="switchMode()">
+      <div class="toggle-knob"></div>
+    </div>
+    <span class="toggle-label ai dim" id="label-ai">AI</span>
+  </div>
+
+  <!-- Human vs Human games -->
+  <div class="games-section active" id="section-human">
   <div class="games-grid">
 
     <a class="game-card" href="tictactoe.html">
@@ -153,21 +270,21 @@
     <a class="game-card" href="connect4.html">
       <svg class="game-icon" viewBox="0 0 100 100">
         <rect x="5" y="25" width="90" height="70" rx="4" fill="#224" stroke="#0ff" stroke-width="2"/>
-        <circle cx="19" cy="39" r="9" fill="#f55" opacity="0.9"/>
-        <circle cx="36" cy="39" r="9" fill="#224" stroke="#556" stroke-width="1"/>
-        <circle cx="53" cy="39" r="9" fill="#ff0" opacity="0.9"/>
-        <circle cx="70" cy="39" r="9" fill="#f55" opacity="0.9"/>
-        <circle cx="87" cy="39" r="9" fill="#224" stroke="#556" stroke-width="1"/>
-        <circle cx="19" cy="57" r="9" fill="#224" stroke="#556" stroke-width="1"/>
-        <circle cx="36" cy="57" r="9" fill="#ff0" opacity="0.9"/>
-        <circle cx="53" cy="57" r="9" fill="#f55" opacity="0.9"/>
-        <circle cx="70" cy="57" r="9" fill="#ff0" opacity="0.9"/>
-        <circle cx="87" cy="57" r="9" fill="#224" stroke="#556" stroke-width="1"/>
-        <circle cx="19" cy="75" r="9" fill="#ff0" opacity="0.9"/>
-        <circle cx="36" cy="75" r="9" fill="#f55" opacity="0.9"/>
-        <circle cx="53" cy="75" r="9" fill="#ff0" opacity="0.9"/>
-        <circle cx="70" cy="75" r="9" fill="#f55" stroke="#f0f" stroke-width="2" opacity="1"/>
-        <circle cx="87" cy="75" r="9" fill="#ff0" opacity="0.9"/>
+        <circle cx="16" cy="41" r="9" fill="#f55" opacity="0.9"/>
+        <circle cx="33" cy="41" r="9" fill="#224" stroke="#556" stroke-width="1"/>
+        <circle cx="50" cy="41" r="9" fill="#ff0" opacity="0.9"/>
+        <circle cx="67" cy="41" r="9" fill="#f55" opacity="0.9"/>
+        <circle cx="84" cy="41" r="9" fill="#224" stroke="#556" stroke-width="1"/>
+        <circle cx="16" cy="59" r="9" fill="#224" stroke="#556" stroke-width="1"/>
+        <circle cx="33" cy="59" r="9" fill="#ff0" opacity="0.9"/>
+        <circle cx="50" cy="59" r="9" fill="#f55" opacity="0.9"/>
+        <circle cx="67" cy="59" r="9" fill="#ff0" opacity="0.9"/>
+        <circle cx="84" cy="59" r="9" fill="#224" stroke="#556" stroke-width="1"/>
+        <circle cx="16" cy="77" r="9" fill="#ff0" opacity="0.9"/>
+        <circle cx="33" cy="77" r="9" fill="#f55" opacity="0.9"/>
+        <circle cx="50" cy="77" r="9" fill="#ff0" opacity="0.9"/>
+        <circle cx="67" cy="77" r="9" fill="#f55" opacity="0.9"/>
+        <circle cx="84" cy="77" r="9" fill="#ff0" opacity="0.9"/>
         <polygon points="50,5 38,22 62,22" fill="#0ff" opacity="0.8"/>
       </svg>
       <div class="game-name">CONNECT 4</div>
@@ -178,7 +295,7 @@
     <a class="game-card" href="dotsandboxes.html">
       <svg class="game-icon" viewBox="0 0 100 100">
         <rect x="15" y="15" width="30" height="30" fill="#f558" stroke="none"/>
-        <rect x="55" y="55" width="30" height="30" fill="#5af8" stroke="none"/>
+        <rect x="45" y="45" width="30" height="30" fill="#5af8" stroke="none"/>
         <circle cx="15" cy="15" r="4" fill="#0ff"/>
         <circle cx="45" cy="15" r="4" fill="#0ff"/>
         <circle cx="75" cy="15" r="4" fill="#0ff"/>
@@ -207,8 +324,107 @@
     </a>
 
   </div>
+  </div>
+
+  <!-- AI games -->
+  <div class="games-section" id="section-ai">
+  <div class="games-grid">
+
+    <a class="game-card coming-soon">
+      <svg class="game-icon" viewBox="0 0 100 100">
+        <line x1="33" y1="5" x2="33" y2="95" stroke="#f0f" stroke-width="4"/>
+        <line x1="67" y1="5" x2="67" y2="95" stroke="#f0f" stroke-width="4"/>
+        <line x1="5" y1="33" x2="95" y2="33" stroke="#f0f" stroke-width="4"/>
+        <line x1="5" y1="67" x2="95" y2="67" stroke="#f0f" stroke-width="4"/>
+        <text x="50" y="24" text-anchor="middle" dominant-baseline="middle" fill="#f0f" font-size="18" font-family="monospace">X</text>
+        <text x="17" y="50" text-anchor="middle" dominant-baseline="middle" fill="#f0f" font-size="14" font-family="monospace">O</text>
+        <text x="83" y="83" text-anchor="middle" dominant-baseline="middle" fill="#f0f" font-size="18" font-family="monospace">X</text>
+        <circle cx="50" cy="83" r="10" stroke="#f0f" stroke-width="3" fill="none"/>
+        <circle cx="83" cy="50" r="10" stroke="#f0f" stroke-width="3" fill="none"/>
+        <polygon points="17,72 8,88 26,88" fill="#0ff" opacity="0.7"/>
+        <circle cx="17" cy="72" r="5" fill="#0ff" opacity="0.9"/>
+      </svg>
+      <div class="game-name">TIC TAC TOE</div>
+      <div class="coming-tag">VS AI</div>
+      <div class="game-desc">CHALLENGE THE MACHINE</div>
+      <button class="play-btn">COMING SOON</button>
+    </a>
+
+    <a class="game-card coming-soon">
+      <svg class="game-icon" viewBox="0 0 100 100">
+        <rect x="5" y="25" width="90" height="70" rx="4" fill="#1a0a2b" stroke="#f0f" stroke-width="2"/>
+        <circle cx="19" cy="39" r="9" fill="#f55" opacity="0.9"/>
+        <circle cx="36" cy="39" r="9" fill="#1a0a2b" stroke="#556" stroke-width="1"/>
+        <circle cx="53" cy="39" r="9" fill="#f55" opacity="0.9"/>
+        <circle cx="70" cy="39" r="9" fill="#1a0a2b" stroke="#556" stroke-width="1"/>
+        <circle cx="87" cy="39" r="9" fill="#1a0a2b" stroke="#556" stroke-width="1"/>
+        <circle cx="19" cy="57" r="9" fill="#1a0a2b" stroke="#556" stroke-width="1"/>
+        <circle cx="36" cy="57" r="9" fill="#f55" opacity="0.9"/>
+        <circle cx="53" cy="57" r="9" fill="#1a0a2b" stroke="#556" stroke-width="1"/>
+        <circle cx="70" cy="57" r="9" fill="#f55" opacity="0.9"/>
+        <circle cx="87" cy="57" r="9" fill="#1a0a2b" stroke="#556" stroke-width="1"/>
+        <circle cx="19" cy="75" r="9" fill="#1a0a2b" stroke="#556" stroke-width="1"/>
+        <circle cx="36" cy="75" r="9" fill="#f55" opacity="0.9"/>
+        <circle cx="53" cy="75" r="9" fill="#f55" stroke="#f0f" stroke-width="2" opacity="1"/>
+        <circle cx="70" cy="75" r="9" fill="#f55" opacity="0.9"/>
+        <circle cx="87" cy="75" r="9" fill="#1a0a2b" stroke="#556" stroke-width="1"/>
+        <polygon points="50,5 38,22 62,22" fill="#f0f" opacity="0.8"/>
+      </svg>
+      <div class="game-name">CONNECT 4</div>
+      <div class="coming-tag">VS AI</div>
+      <div class="game-desc">CAN YOU BEAT THE BOT?</div>
+      <button class="play-btn">COMING SOON</button>
+    </a>
+
+    <a class="game-card coming-soon">
+      <svg class="game-icon" viewBox="0 0 100 100">
+        <rect x="15" y="15" width="30" height="30" fill="#f558" stroke="none"/>
+        <rect x="55" y="55" width="30" height="30" fill="#f0f4" stroke="none"/>
+        <circle cx="15" cy="15" r="4" fill="#f0f"/>
+        <circle cx="45" cy="15" r="4" fill="#f0f"/>
+        <circle cx="75" cy="15" r="4" fill="#f0f"/>
+        <circle cx="15" cy="45" r="4" fill="#f0f"/>
+        <circle cx="45" cy="45" r="4" fill="#f0f"/>
+        <circle cx="75" cy="45" r="4" fill="#f0f"/>
+        <circle cx="15" cy="75" r="4" fill="#f0f"/>
+        <circle cx="45" cy="75" r="4" fill="#f0f"/>
+        <circle cx="75" cy="75" r="4" fill="#f0f"/>
+        <line x1="15" y1="15" x2="45" y2="15" stroke="#f55" stroke-width="3"/>
+        <line x1="45" y1="15" x2="75" y2="15" stroke="#f0f" stroke-width="3"/>
+        <line x1="15" y1="45" x2="45" y2="45" stroke="#f55" stroke-width="3"/>
+        <line x1="45" y1="45" x2="75" y2="45" stroke="#f55" stroke-width="3"/>
+        <line x1="15" y1="75" x2="45" y2="75" stroke="#f0f" stroke-width="3"/>
+        <line x1="45" y1="75" x2="75" y2="75" stroke="#f0f" stroke-width="3"/>
+        <line x1="15" y1="15" x2="15" y2="45" stroke="#f55" stroke-width="3"/>
+        <line x1="45" y1="15" x2="45" y2="45" stroke="#f55" stroke-width="3"/>
+        <line x1="75" y1="15" x2="75" y2="45" stroke="#f0f" stroke-width="3"/>
+        <line x1="15" y1="45" x2="15" y2="75" stroke="#f0f" stroke-width="3"/>
+        <line x1="45" y1="45" x2="45" y2="75" stroke="#f0f" stroke-width="3"/>
+        <line x1="75" y1="45" x2="75" y2="75" stroke="#f0f" stroke-width="3"/>
+      </svg>
+      <div class="game-name">DOTS & BOXES</div>
+      <div class="coming-tag">VS AI</div>
+      <div class="game-desc">OUTSMART THE ALGORITHM</div>
+      <button class="play-btn">COMING SOON</button>
+    </a>
+
+  </div>
+  </div>
 
   <footer>© ARCADE · ALL RIGHTS RESERVED</footer>
+
+  <script>
+    let isAI = false;
+
+    function switchMode() {
+      isAI = !isAI;
+      document.getElementById('toggle').classList.toggle('ai-mode', isAI);
+      document.getElementById('label-human').classList.toggle('dim', isAI);
+      document.getElementById('label-ai').classList.toggle('dim', !isAI);
+      document.getElementById('section-human').classList.toggle('active', !isAI);
+      document.getElementById('section-ai').classList.toggle('active', isAI);
+    }
+  </script>
 
 </body>
 </html>
