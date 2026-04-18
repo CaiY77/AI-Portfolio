@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tic Tac Toe</title>
+  <title>Tic Tac Toe vs AI</title>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -24,25 +24,33 @@
       font-family: 'Press Start 2P', monospace;
       font-size: 8px;
       background: transparent;
-      border: 2px solid #0ff;
-      color: #0ff;
+      border: 2px solid #f0f;
+      color: #f0f;
       padding: 8px 14px;
       cursor: pointer;
       letter-spacing: 1px;
       text-decoration: none;
-      text-shadow: 0 0 6px #0ff;
-      box-shadow: 0 0 8px #0ff4;
+      text-shadow: 0 0 6px #f0f;
+      box-shadow: 0 0 8px #f0f4;
       transition: all 0.2s;
       margin-bottom: 30px;
     }
-    .back-btn:hover { border-color: #f0f; color: #f0f; text-shadow: 0 0 6px #f0f; }
+    .back-btn:hover { border-color: #0ff; color: #0ff; text-shadow: 0 0 6px #0ff; }
 
     h1 {
       font-size: clamp(16px, 4vw, 28px);
-      color: #0ff;
-      text-shadow: 0 0 10px #0ff, 0 0 30px #0ff;
+      color: #f0f;
+      text-shadow: 0 0 10px #f0f, 0 0 30px #f0f;
       letter-spacing: 4px;
-      margin-bottom: 10px;
+      margin-bottom: 4px;
+    }
+
+    .vs-tag {
+      font-size: 8px;
+      color: #f0fa;
+      letter-spacing: 3px;
+      margin-bottom: 20px;
+      text-shadow: 0 0 6px #f0f;
     }
 
     .scoreboard {
@@ -59,9 +67,9 @@
       border-radius: 4px;
     }
 
-    .score-block.x { border-color: #f55; color: #f55; text-shadow: 0 0 6px #f55; }
-    .score-block.o { border-color: #5af; color: #5af; text-shadow: 0 0 6px #5af; }
-    .score-block.tie { border-color: #888; color: #888; }
+    .score-block.you  { border-color: #f55; color: #f55; text-shadow: 0 0 6px #f55; }
+    .score-block.ai   { border-color: #f0f; color: #f0f; text-shadow: 0 0 6px #f0f; }
+    .score-block.tie  { border-color: #888; color: #888; }
 
     .score-label { font-size: 7px; margin-bottom: 6px; opacity: 0.8; }
     .score-value { font-size: 18px; }
@@ -98,54 +106,94 @@
     }
 
     .cell:hover:not(.taken) {
-      background: #111133;
-      border-color: #0ff4;
+      background: #1a0d2b;
+      border-color: #f0f4;
     }
 
-    .cell.x { color: #f55; text-shadow: 0 0 12px #f55; border-color: #f554; cursor: default; }
-    .cell.o { color: #5af; text-shadow: 0 0 12px #5af; border-color: #5af4; cursor: default; }
+    .cell.x   { color: #f55; text-shadow: 0 0 12px #f55; border-color: #f554; cursor: default; }
+    .cell.o   { color: #f0f; text-shadow: 0 0 12px #f0f; border-color: #f0f4; cursor: default; }
     .cell.taken { cursor: default; }
+    .cell.thinking { cursor: default; }
+
     .cell.win-cell { animation: pulse 0.6s ease-in-out infinite alternate; }
 
     @keyframes pulse {
-      from { background: #111133; }
-      to { background: #221133; }
+      from { background: #150d2b; }
+      to   { background: #2a0a2a; }
     }
 
     .btn {
       font-family: 'Press Start 2P', monospace;
       font-size: 9px;
       background: transparent;
-      border: 2px solid #0ff;
-      color: #0ff;
+      border: 2px solid #f0f;
+      color: #f0f;
       padding: 12px 24px;
       cursor: pointer;
       letter-spacing: 2px;
-      text-shadow: 0 0 6px #0ff;
-      box-shadow: 0 0 8px #0ff4;
+      text-shadow: 0 0 6px #f0f;
+      box-shadow: 0 0 8px #f0f4;
       transition: all 0.2s;
     }
-    .btn:hover { border-color: #f0f; color: #f0f; text-shadow: 0 0 6px #f0f; box-shadow: 0 0 12px #f0f6; }
+    .btn:hover { border-color: #0ff; color: #0ff; text-shadow: 0 0 6px #0ff; box-shadow: 0 0 12px #0ff6; }
+
+    .difficulty-wrap {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      align-items: center;
+    }
+
+    .diff-label { font-size: 7px; color: #556; letter-spacing: 2px; margin-right: 4px; }
+
+    .diff-btn {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 7px;
+      background: transparent;
+      border: 2px solid #446;
+      color: #556;
+      padding: 6px 10px;
+      cursor: pointer;
+      letter-spacing: 1px;
+      transition: all 0.2s;
+    }
+
+    .diff-btn.active {
+      border-color: #f0f;
+      color: #f0f;
+      text-shadow: 0 0 6px #f0f;
+      box-shadow: 0 0 6px #f0f4;
+    }
+
+    .diff-btn:hover:not(.active) { border-color: #778; color: #889; }
   </style>
 </head>
 <body>
 
   <a class="back-btn" href="index.html">◄ ARCADE</a>
   <h1>TIC TAC TOE</h1>
+  <div class="vs-tag">VS AI</div>
 
   <div class="scoreboard">
-    <div class="score-block x">
-      <div class="score-label">PLAYER X</div>
-      <div class="score-value" id="score-x">0</div>
+    <div class="score-block you">
+      <div class="score-label">YOU (X)</div>
+      <div class="score-value" id="score-you">0</div>
     </div>
     <div class="score-block tie">
       <div class="score-label">TIES</div>
       <div class="score-value" id="score-tie">0</div>
     </div>
-    <div class="score-block o">
-      <div class="score-label">PLAYER O</div>
-      <div class="score-value" id="score-o">0</div>
+    <div class="score-block ai">
+      <div class="score-label">AI (O)</div>
+      <div class="score-value" id="score-ai">0</div>
     </div>
+  </div>
+
+  <div class="difficulty-wrap">
+    <span class="diff-label">DIFFICULTY:</span>
+    <button class="diff-btn" data-d="easy" onclick="setDiff('easy')">EASY</button>
+    <button class="diff-btn active" data-d="medium" onclick="setDiff('medium')">MEDIUM</button>
+    <button class="diff-btn" data-d="hard" onclick="setDiff('hard')">HARD</button>
   </div>
 
   <div class="status" id="status"></div>
@@ -164,7 +212,7 @@
 
   <button class="btn" id="reset-btn">NEW GAME</button>
 
-  <script src="js/human.js"></script>
+  <script src="js/ai.js"></script>
 
 </body>
 </html>
