@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connect 4</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0a0a1a;
+      color: #fff;
+      font-family: 'Press Start 2P', monospace;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 30px 20px;
+    }
+
+    .back-btn {
+      align-self: flex-start;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+      background: transparent;
+      border: 2px solid #0ff;
+      color: #0ff;
+      padding: 8px 14px;
+      cursor: pointer;
+      letter-spacing: 1px;
+      text-decoration: none;
+      text-shadow: 0 0 6px #0ff;
+      box-shadow: 0 0 8px #0ff4;
+      transition: all 0.2s;
+      margin-bottom: 30px;
+    }
+    .back-btn:hover { border-color: #f0f; color: #f0f; text-shadow: 0 0 6px #f0f; }
+
+    h1 {
+      font-size: clamp(16px, 4vw, 28px);
+      color: #0ff;
+      text-shadow: 0 0 10px #0ff, 0 0 30px #0ff;
+      letter-spacing: 4px;
+      margin-bottom: 10px;
+    }
+
+    .scoreboard {
+      display: flex;
+      gap: 30px;
+      margin-bottom: 20px;
+      font-size: 9px;
+    }
+
+    .score-block {
+      text-align: center;
+      padding: 10px 20px;
+      border: 2px solid #333;
+      border-radius: 4px;
+    }
+    .score-block.p1 { border-color: #f55; color: #f55; text-shadow: 0 0 6px #f55; }
+    .score-block.p2 { border-color: #ff0; color: #ff0; text-shadow: 0 0 6px #ff0; }
+    .score-label { font-size: 7px; margin-bottom: 6px; opacity: 0.8; }
+    .score-value { font-size: 18px; }
+
+    .status {
+      font-size: 10px;
+      margin-bottom: 16px;
+      min-height: 20px;
+      letter-spacing: 2px;
+      text-shadow: 0 0 8px currentColor;
+    }
+
+    .drop-indicators {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+
+    .drop-arrow {
+      width: clamp(44px, 9vw, 64px);
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      cursor: pointer;
+      color: transparent;
+      transition: color 0.15s;
+      user-select: none;
+    }
+
+    .drop-arrow:hover { color: #fff; }
+    .drop-arrow.p1-hover { color: #f55; text-shadow: 0 0 8px #f55; }
+    .drop-arrow.p2-hover { color: #ff0; text-shadow: 0 0 8px #ff0; }
+
+    .board-wrap {
+      background: #0d1a3a;
+      border: 3px solid #0ff;
+      border-radius: 8px;
+      padding: 10px;
+      box-shadow: 0 0 20px #0ff6, inset 0 0 20px #0ff1;
+      margin-bottom: 24px;
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+    }
+
+    .cell {
+      width: clamp(44px, 9vw, 64px);
+      height: clamp(44px, 9vw, 64px);
+      border-radius: 50%;
+      background: #0a0a1a;
+      box-shadow: inset 0 0 8px #0004;
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+
+    .cell.p1 {
+      background: #f55;
+      box-shadow: 0 0 10px #f55, 0 0 20px #f554, inset 0 2px 4px #fff3;
+    }
+
+    .cell.p2 {
+      background: #ff0;
+      box-shadow: 0 0 10px #ff0, 0 0 20px #ff06, inset 0 2px 4px #fff3;
+    }
+
+    .cell.win-cell {
+      animation: glow 0.5s ease-in-out infinite alternate;
+    }
+
+    @keyframes glow {
+      from { filter: brightness(1); }
+      to   { filter: brightness(1.8); }
+    }
+
+    .btn {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 9px;
+      background: transparent;
+      border: 2px solid #0ff;
+      color: #0ff;
+      padding: 12px 24px;
+      cursor: pointer;
+      letter-spacing: 2px;
+      text-shadow: 0 0 6px #0ff;
+      box-shadow: 0 0 8px #0ff4;
+      transition: all 0.2s;
+    }
+    .btn:hover { border-color: #f0f; color: #f0f; text-shadow: 0 0 6px #f0f; box-shadow: 0 0 12px #f0f6; }
+
+    .legend {
+      display: flex;
+      gap: 24px;
+      margin-top: 20px;
+      font-size: 8px;
+    }
+    .legend-item { display: flex; align-items: center; gap: 8px; }
+    .legend-dot { width: 14px; height: 14px; border-radius: 50%; }
+    .legend-dot.p1 { background: #f55; box-shadow: 0 0 6px #f55; }
+    .legend-dot.p2 { background: #ff0; box-shadow: 0 0 6px #ff0; }
+  </style>
+</head>
+<body>
+
+  <a class="back-btn" href="index.html">◄ ARCADE</a>
+  <h1>CONNECT 4</h1>
+
+  <div class="scoreboard">
+    <div class="score-block p1">
+      <div class="score-label">PLAYER 1</div>
+      <div class="score-value" id="score-p1">0</div>
+    </div>
+    <div class="score-block p2">
+      <div class="score-label">PLAYER 2</div>
+      <div class="score-value" id="score-p2">0</div>
+    </div>
+  </div>
+
+  <div class="status" id="status"></div>
+
+  <div class="drop-indicators" id="arrows"></div>
+
+  <div class="board-wrap">
+    <div class="board" id="board"></div>
+  </div>
+
+  <button class="btn" id="reset-btn">NEW GAME</button>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot p1"></div><span style="color:#f55">PLAYER 1</span></div>
+    <div class="legend-item"><div class="legend-dot p2"></div><span style="color:#ff0">PLAYER 2</span></div>
+  </div>
+
+  <script>
+    const ROWS = 6, COLS = 7;
+    let grid, current, over;
+    let scores = { 1: 0, 2: 0 };
+
+    const boardEl = document.getElementById('board');
+    const arrowsEl = document.getElementById('arrows');
+    const statusEl = document.getElementById('status');
+    const scoreP1 = document.getElementById('score-p1');
+    const scoreP2 = document.getElementById('score-p2');
+
+    function init() {
+      grid = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+      current = 1;
+      over = false;
+      render();
+      setStatus();
+    }
+
+    function render() {
+      boardEl.innerHTML = '';
+      arrowsEl.innerHTML = '';
+
+      for (let c = 0; c < COLS; c++) {
+        const arrow = document.createElement('div');
+        arrow.className = 'drop-arrow';
+        arrow.textContent = '▼';
+        arrow.dataset.col = c;
+        arrow.addEventListener('click', () => drop(c));
+        arrow.addEventListener('mouseenter', () => {
+          if (!over) arrow.classList.add(`p${current}-hover`);
+        });
+        arrow.addEventListener('mouseleave', () => {
+          arrow.classList.remove('p1-hover', 'p2-hover');
+        });
+        arrowsEl.appendChild(arrow);
+      }
+
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          const cell = document.createElement('div');
+          cell.className = 'cell';
+          if (grid[r][c]) cell.classList.add(`p${grid[r][c]}`);
+          cell.dataset.r = r;
+          cell.dataset.c = c;
+          boardEl.appendChild(cell);
+        }
+      }
+    }
+
+    function drop(col) {
+      if (over) return;
+      let row = -1;
+      for (let r = ROWS - 1; r >= 0; r--) {
+        if (!grid[r][col]) { row = r; break; }
+      }
+      if (row === -1) return;
+
+      grid[row][col] = current;
+
+      const win = checkWin(row, col);
+      render();
+
+      if (win) {
+        over = true;
+        win.forEach(([r, c]) => {
+          boardEl.children[r * COLS + c].classList.add('win-cell');
+        });
+        scores[current]++;
+        updateScores();
+        const color = current === 1 ? '#f55' : '#ff0';
+        statusEl.style.color = color;
+        statusEl.textContent = `PLAYER ${current} WINS!`;
+        return;
+      }
+
+      if (grid[0].every(v => v)) {
+        over = true;
+        statusEl.style.color = '#aaa';
+        statusEl.textContent = "IT'S A DRAW!";
+        return;
+      }
+
+      current = current === 1 ? 2 : 1;
+      setStatus();
+    }
+
+    function checkWin(row, col) {
+      const dirs = [[0,1],[1,0],[1,1],[1,-1]];
+      for (const [dr, dc] of dirs) {
+        const line = [[row, col]];
+        for (const sign of [1, -1]) {
+          let r = row + dr * sign, c = col + dc * sign;
+          while (r >= 0 && r < ROWS && c >= 0 && c < COLS && grid[r][c] === current) {
+            line.push([r, c]);
+            r += dr * sign;
+            c += dc * sign;
+          }
+        }
+        if (line.length >= 4) return line;
+      }
+      return null;
+    }
+
+    function setStatus() {
+      const color = current === 1 ? '#f55' : '#ff0';
+      statusEl.style.color = color;
+      statusEl.textContent = `PLAYER ${current}'S TURN`;
+    }
+
+    function updateScores() {
+      scoreP1.textContent = scores[1];
+      scoreP2.textContent = scores[2];
+    }
+
+    document.getElementById('reset-btn').addEventListener('click', init);
+    init();
+  </script>
+
+</body>
+</html>

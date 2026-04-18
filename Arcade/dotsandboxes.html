@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dots & Boxes</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0a0a1a;
+      color: #fff;
+      font-family: 'Press Start 2P', monospace;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 30px 20px;
+    }
+
+    .back-btn {
+      align-self: flex-start;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+      background: transparent;
+      border: 2px solid #0ff;
+      color: #0ff;
+      padding: 8px 14px;
+      cursor: pointer;
+      letter-spacing: 1px;
+      text-decoration: none;
+      text-shadow: 0 0 6px #0ff;
+      box-shadow: 0 0 8px #0ff4;
+      transition: all 0.2s;
+      margin-bottom: 30px;
+    }
+    .back-btn:hover { border-color: #f0f; color: #f0f; text-shadow: 0 0 6px #f0f; }
+
+    h1 {
+      font-size: clamp(14px, 3.5vw, 24px);
+      color: #0ff;
+      text-shadow: 0 0 10px #0ff, 0 0 30px #0ff;
+      letter-spacing: 4px;
+      margin-bottom: 10px;
+    }
+
+    .scoreboard {
+      display: flex;
+      gap: 30px;
+      margin-bottom: 16px;
+      font-size: 9px;
+    }
+
+    .score-block {
+      text-align: center;
+      padding: 10px 20px;
+      border: 2px solid #333;
+      border-radius: 4px;
+    }
+    .score-block.p1 { border-color: #f55; color: #f55; text-shadow: 0 0 6px #f55; }
+    .score-block.p2 { border-color: #5af; color: #5af; text-shadow: 0 0 6px #5af; }
+    .score-label { font-size: 7px; margin-bottom: 6px; opacity: 0.8; }
+    .score-value { font-size: 18px; }
+
+    .status {
+      font-size: 10px;
+      margin-bottom: 20px;
+      min-height: 20px;
+      letter-spacing: 2px;
+      text-shadow: 0 0 8px currentColor;
+    }
+
+    .hint {
+      font-size: 7px;
+      color: #556;
+      margin-bottom: 16px;
+      letter-spacing: 1px;
+    }
+
+    /* Canvas-based board */
+    canvas {
+      cursor: pointer;
+      display: block;
+      margin-bottom: 24px;
+    }
+
+    .btn {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 9px;
+      background: transparent;
+      border: 2px solid #0ff;
+      color: #0ff;
+      padding: 12px 24px;
+      cursor: pointer;
+      letter-spacing: 2px;
+      text-shadow: 0 0 6px #0ff;
+      box-shadow: 0 0 8px #0ff4;
+      transition: all 0.2s;
+    }
+    .btn:hover { border-color: #f0f; color: #f0f; text-shadow: 0 0 6px #f0f; box-shadow: 0 0 12px #f0f6; }
+
+    .legend {
+      display: flex;
+      gap: 24px;
+      margin-top: 20px;
+      font-size: 8px;
+    }
+    .legend-item { display: flex; align-items: center; gap: 8px; }
+    .legend-dot { width: 14px; height: 14px; border-radius: 50%; }
+    .legend-dot.p1 { background: #f55; box-shadow: 0 0 6px #f55; }
+    .legend-dot.p2 { background: #5af; box-shadow: 0 0 6px #5af; }
+  </style>
+</head>
+<body>
+
+  <a class="back-btn" href="index.html">◄ ARCADE</a>
+  <h1>DOTS & BOXES</h1>
+
+  <div class="scoreboard">
+    <div class="score-block p1">
+      <div class="score-label">PLAYER 1</div>
+      <div class="score-value" id="score-p1">0</div>
+    </div>
+    <div class="score-block p2">
+      <div class="score-label">PLAYER 2</div>
+      <div class="score-value" id="score-p2">0</div>
+    </div>
+  </div>
+
+  <div class="status" id="status"></div>
+  <div class="hint">CLICK A LINE BETWEEN DOTS TO CLAIM IT</div>
+
+  <canvas id="canvas"></canvas>
+
+  <button class="btn" id="reset-btn">NEW GAME</button>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot p1"></div><span style="color:#f55">PLAYER 1</span></div>
+    <div class="legend-item"><div class="legend-dot p2"></div><span style="color:#5af">PLAYER 2</span></div>
+  </div>
+
+  <script>
+    const GRID = 5; // 5x5 dots = 4x4 boxes
+    const CELL = 80;
+    const PAD = 40;
+    const DOT_R = 6;
+    const LINE_HIT = 14;
+
+    const COLORS = { 1: '#f55', 2: '#5af' };
+    const BOX_FILL = { 1: 'rgba(255,85,85,0.25)', 2: 'rgba(85,170,255,0.25)' };
+
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const statusEl = document.getElementById('status');
+    const scoreP1El = document.getElementById('score-p1');
+    const scoreP2El = document.getElementById('score-p2');
+
+    let hLines, vLines, boxes, current, over, scores, hoverLine;
+
+    const W = PAD * 2 + CELL * (GRID - 1);
+    canvas.width = W;
+    canvas.height = W;
+
+    function init() {
+      // hLines[r][c] = 0|1|2 — horizontal line between dot(r,c) and dot(r,c+1)
+      hLines = Array.from({ length: GRID }, () => Array(GRID - 1).fill(0));
+      // vLines[r][c] = 0|1|2 — vertical line between dot(r,c) and dot(r+1,c)
+      vLines = Array.from({ length: GRID - 1 }, () => Array(GRID).fill(0));
+      // boxes[r][c] = 0|1|2 — owner of box with top-left dot at (r,c)
+      boxes = Array.from({ length: GRID - 1 }, () => Array(GRID - 1).fill(0));
+      current = 1;
+      over = false;
+      hoverLine = null;
+      scores = { 1: 0, 2: 0 };
+      updateScores();
+      setStatus();
+      draw();
+    }
+
+    function dotPos(r, c) {
+      return { x: PAD + c * CELL, y: PAD + r * CELL };
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, W, W);
+
+      // Draw filled boxes
+      for (let r = 0; r < GRID - 1; r++) {
+        for (let c = 0; c < GRID - 1; c++) {
+          if (boxes[r][c]) {
+            const p = dotPos(r, c);
+            ctx.fillStyle = BOX_FILL[boxes[r][c]];
+            ctx.fillRect(p.x, p.y, CELL, CELL);
+
+            // Box label
+            ctx.fillStyle = COLORS[boxes[r][c]];
+            ctx.font = 'bold 16px monospace';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(`P${boxes[r][c]}`, p.x + CELL / 2, p.y + CELL / 2);
+          }
+        }
+      }
+
+      // Draw horizontal lines
+      for (let r = 0; r < GRID; r++) {
+        for (let c = 0; c < GRID - 1; c++) {
+          const p1 = dotPos(r, c);
+          const p2 = dotPos(r, c + 1);
+          drawLine(p1, p2, hLines[r][c], isHover('h', r, c));
+        }
+      }
+
+      // Draw vertical lines
+      for (let r = 0; r < GRID - 1; r++) {
+        for (let c = 0; c < GRID; c++) {
+          const p1 = dotPos(r, c);
+          const p2 = dotPos(r + 1, c);
+          drawLine(p1, p2, vLines[r][c], isHover('v', r, c));
+        }
+      }
+
+      // Draw dots
+      for (let r = 0; r < GRID; r++) {
+        for (let c = 0; c < GRID; c++) {
+          const p = dotPos(r, c);
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, DOT_R, 0, Math.PI * 2);
+          ctx.fillStyle = '#0ff';
+          ctx.shadowColor = '#0ff';
+          ctx.shadowBlur = 8;
+          ctx.fill();
+          ctx.shadowBlur = 0;
+        }
+      }
+    }
+
+    function isHover(type, r, c) {
+      return hoverLine && hoverLine.type === type && hoverLine.r === r && hoverLine.c === c;
+    }
+
+    function drawLine(p1, p2, owner, hover) {
+      ctx.beginPath();
+      ctx.moveTo(p1.x, p1.y);
+      ctx.lineTo(p2.x, p2.y);
+      ctx.lineWidth = owner ? 5 : 3;
+
+      if (owner) {
+        ctx.strokeStyle = COLORS[owner];
+        ctx.shadowColor = COLORS[owner];
+        ctx.shadowBlur = 10;
+      } else if (hover && !over) {
+        ctx.strokeStyle = COLORS[current] + 'aa';
+        ctx.shadowColor = COLORS[current];
+        ctx.shadowBlur = 8;
+      } else {
+        ctx.strokeStyle = '#223';
+        ctx.shadowBlur = 0;
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
+
+    function getLineAt(mx, my) {
+      // Check horizontal lines
+      for (let r = 0; r < GRID; r++) {
+        for (let c = 0; c < GRID - 1; c++) {
+          const p1 = dotPos(r, c);
+          const p2 = dotPos(r, c + 1);
+          const midX = (p1.x + p2.x) / 2;
+          const midY = p1.y;
+          if (Math.abs(my - midY) < LINE_HIT && mx > p1.x + DOT_R && mx < p2.x - DOT_R) {
+            return { type: 'h', r, c };
+          }
+        }
+      }
+      // Check vertical lines
+      for (let r = 0; r < GRID - 1; r++) {
+        for (let c = 0; c < GRID; c++) {
+          const p1 = dotPos(r, c);
+          const p2 = dotPos(r + 1, c);
+          const midX = p1.x;
+          const midY = (p1.y + p2.y) / 2;
+          if (Math.abs(mx - midX) < LINE_HIT && my > p1.y + DOT_R && my < p2.y - DOT_R) {
+            return { type: 'v', r, c };
+          }
+        }
+      }
+      return null;
+    }
+
+    function claimLine(line) {
+      if (line.type === 'h') {
+        if (hLines[line.r][line.c]) return false;
+        hLines[line.r][line.c] = current;
+      } else {
+        if (vLines[line.r][line.c]) return false;
+        vLines[line.r][line.c] = current;
+      }
+      return true;
+    }
+
+    function checkBoxes() {
+      let scored = 0;
+      for (let r = 0; r < GRID - 1; r++) {
+        for (let c = 0; c < GRID - 1; c++) {
+          if (!boxes[r][c]) {
+            const top    = hLines[r][c];
+            const bottom = hLines[r + 1][c];
+            const left   = vLines[r][c];
+            const right  = vLines[r][c + 1];
+            if (top && bottom && left && right) {
+              boxes[r][c] = current;
+              scores[current]++;
+              scored++;
+            }
+          }
+        }
+      }
+      return scored;
+    }
+
+    function totalLines() {
+      let claimed = 0;
+      hLines.forEach(row => row.forEach(v => { if (v) claimed++; }));
+      vLines.forEach(row => row.forEach(v => { if (v) claimed++; }));
+      const total = GRID * (GRID - 1) * 2;
+      return { claimed, total };
+    }
+
+    function handleClick(e) {
+      if (over) return;
+      const rect = canvas.getBoundingClientRect();
+      const mx = (e.clientX - rect.left) * (canvas.width / rect.width);
+      const my = (e.clientY - rect.top) * (canvas.height / rect.height);
+      const line = getLineAt(mx, my);
+      if (!line) return;
+
+      if (!claimLine(line)) return;
+
+      const scored = checkBoxes();
+      updateScores();
+
+      const { claimed, total } = totalLines();
+      if (claimed === total) {
+        over = true;
+        const winner = scores[1] > scores[2] ? 1 : scores[2] > scores[1] ? 2 : 0;
+        const color = winner ? COLORS[winner] : '#aaa';
+        statusEl.style.color = color;
+        statusEl.textContent = winner ? `PLAYER ${winner} WINS!` : "IT'S A TIE!";
+        hoverLine = null;
+        draw();
+        return;
+      }
+
+      if (scored === 0) {
+        current = current === 1 ? 2 : 1;
+      }
+
+      setStatus();
+      draw();
+    }
+
+    function handleMouseMove(e) {
+      if (over) return;
+      const rect = canvas.getBoundingClientRect();
+      const mx = (e.clientX - rect.left) * (canvas.width / rect.width);
+      const my = (e.clientY - rect.top) * (canvas.height / rect.height);
+      hoverLine = getLineAt(mx, my);
+      draw();
+    }
+
+    function handleMouseLeave() {
+      hoverLine = null;
+      draw();
+    }
+
+    function setStatus() {
+      statusEl.style.color = COLORS[current];
+      statusEl.textContent = `PLAYER ${current}'S TURN`;
+    }
+
+    function updateScores() {
+      scoreP1El.textContent = scores[1];
+      scoreP2El.textContent = scores[2];
+    }
+
+    canvas.addEventListener('click', handleClick);
+    canvas.addEventListener('mousemove', handleMouseMove);
+    canvas.addEventListener('mouseleave', handleMouseLeave);
+    document.getElementById('reset-btn').addEventListener('click', init);
+
+    init();
+  </script>
+
+</body>
+</html>
